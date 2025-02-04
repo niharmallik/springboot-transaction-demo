@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.time.OffsetDateTime;
+import java.util.Map;
 
 @Data
 public class TransactionRequest {
@@ -31,4 +32,7 @@ public class TransactionRequest {
 
     @JsonProperty("schedule_datetime")
     private OffsetDateTime scheduleDateTime;
+
+    @JsonProperty("validation_rules")
+    private Map<String, ValidationRule> validationRules;
 }
