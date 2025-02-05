@@ -13,6 +13,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.Map;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -30,13 +31,17 @@ public class PostPaymentControllerIT {
 
     @Test
     public void testPostPayment_Success() throws Exception {
-        PaymentRequest request = new PaymentRequest();
-        request.setAmount(new Amount("USD", BigDecimal.valueOf(100)));
-        request.setCredit(new AccountDetails("289", "220035", null));
-        request.setDebit(new AccountDetails("289", "220037", null));
-        request.setSoftDescriptor("Payment transaction");
-        request.setTrackingId("12345");
-        request.setScheduleDateTime(OffsetDateTime.now());
+        PaymentRequest request = new PaymentRequest(
+            new Amount("USD", BigDecimal.valueOf(100)),
+            new AccountDetails("289", "220035", null),
+            new AccountDetails("289", "220037", null),
+            false,
+            false,
+            "Payment transaction",
+            "txn-12345",
+            OffsetDateTime.now(),
+            Map.of()
+        );
 
         String requestJson = objectMapper.writeValueAsString(request);
 
@@ -44,17 +49,22 @@ public class PostPaymentControllerIT {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Payment request received with tracking ID: 12345"));
+                .andExpect(content().string("Payment request received with tracking ID: txn-12345"));
     }
 
     @Test
     public void testPostPayment_MissingAmount() throws Exception {
-        PaymentRequest request = new PaymentRequest();
-        request.setCredit(new AccountDetails("289", "220035", null));
-        request.setDebit(new AccountDetails("289", "220037", null));
-        request.setSoftDescriptor("Payment transaction");
-        request.setTrackingId("12345");
-        request.setScheduleDateTime(OffsetDateTime.now());
+        PaymentRequest request = new PaymentRequest(
+            null,  // Missing amount
+            new AccountDetails("289", "220035", null),
+            new AccountDetails("289", "220037", null),
+            false,
+            false,
+            "Missing amount field",
+            "txn-12346",
+            OffsetDateTime.now(),
+            Map.of()
+        );
 
         String requestJson = objectMapper.writeValueAsString(request);
 
@@ -67,12 +77,17 @@ public class PostPaymentControllerIT {
 
     @Test
     public void testPostPayment_MissingTrackingId() throws Exception {
-        PaymentRequest request = new PaymentRequest();
-        request.setAmount(new Amount("USD", BigDecimal.valueOf(100)));
-        request.setCredit(new AccountDetails("289", "220035", null));
-        request.setDebit(new AccountDetails("289", "220037", null));
-        request.setSoftDescriptor("Payment transaction");
-        request.setScheduleDateTime(OffsetDateTime.now());
+        PaymentRequest request = new PaymentRequest(
+            new Amount("USD", BigDecimal.valueOf(100)),
+            new AccountDetails("289", "220035", null),
+            new AccountDetails("289", "220037", null),
+            false,
+            false,
+            "Missing tracking_id",
+            null,  // Missing tracking_id
+            OffsetDateTime.now(),
+            Map.of()
+        );
 
         String requestJson = objectMapper.writeValueAsString(request);
 
