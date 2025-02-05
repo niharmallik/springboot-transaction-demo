@@ -1,14 +1,8 @@
 package com.example.transactiondemo.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
 
-@Data
-public class ValidationRule {
-
-    @JsonProperty("override")
-    private Boolean overrideRule;
-
-    @JsonProperty("force")
-    private Boolean forceRule;
-}
+public record ValidationRule(
+    @JsonProperty("override") Boolean overrideRule,
+    @JsonProperty("force") Boolean forceRule
+) {}
