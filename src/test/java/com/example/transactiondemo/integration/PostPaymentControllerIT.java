@@ -19,6 +19,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * Integration tests for PostPaymentController using latest Java features.
+ */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 public class PostPaymentControllerIT {
@@ -29,9 +32,12 @@ public class PostPaymentControllerIT {
     @Autowired
     private ObjectMapper objectMapper;
 
+    /**
+     * Tests a successful payment request.
+     */
     @Test
     public void testPostPayment_Success() throws Exception {
-        PaymentRequest request = new PaymentRequest(
+        var request = new PaymentRequest(
             new Amount("USD", BigDecimal.valueOf(100)),
             new AccountDetails("289", "220035", null),
             new AccountDetails("289", "220037", null),
@@ -43,18 +49,21 @@ public class PostPaymentControllerIT {
             Map.of()
         );
 
-        String requestJson = objectMapper.writeValueAsString(request);
+        var requestJson = objectMapper.writeValueAsString(request);
 
         mockMvc.perform(post("/corporate/v2/payments")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Payment request received with tracking ID: txn-12345"));
+                .andExpect(content().json("{"code":"WPMT0000","message":"Payment request received successfully","trackingId":"txn-12345"}"));
     }
 
+    /**
+     * Tests a payment request missing the amount field.
+     */
     @Test
     public void testPostPayment_MissingAmount() throws Exception {
-        PaymentRequest request = new PaymentRequest(
+        var request = new PaymentRequest(
             null,  // Missing amount
             new AccountDetails("289", "220035", null),
             new AccountDetails("289", "220037", null),
@@ -66,18 +75,21 @@ public class PostPaymentControllerIT {
             Map.of()
         );
 
-        String requestJson = objectMapper.writeValueAsString(request);
+        var requestJson = objectMapper.writeValueAsString(request);
 
         mockMvc.perform(post("/corporate/v2/payments")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("Missing 'amount' in request."));
+                .andExpect(content().json("[{"code":"WPMT0018","message":"Amount is required"}]"));
     }
 
+    /**
+     * Tests a payment request missing the tracking_id field.
+     */
     @Test
     public void testPostPayment_MissingTrackingId() throws Exception {
-        PaymentRequest request = new PaymentRequest(
+        var request = new PaymentRequest(
             new Amount("USD", BigDecimal.valueOf(100)),
             new AccountDetails("289", "220035", null),
             new AccountDetails("289", "220037", null),
@@ -89,12 +101,12 @@ public class PostPaymentControllerIT {
             Map.of()
         );
 
-        String requestJson = objectMapper.writeValueAsString(request);
+        var requestJson = objectMapper.writeValueAsString(request);
 
         mockMvc.perform(post("/corporate/v2/payments")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string("Missing 'tracking_id' in request."));
+                .andExpect(content().json("[{"code":"WPMT0018","message":"Tracking ID is required"}]"));
     }
 }
