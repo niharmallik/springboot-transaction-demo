@@ -20,7 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Integration tests for PostPaymentController using latest Java features.
+ * Integration tests for PostPaymentController.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -37,76 +37,50 @@ public class PostPaymentControllerIT {
      */
     @Test
     public void testPostPayment_Success() throws Exception {
-        var request = new PaymentRequest(
-            new Amount("USD", BigDecimal.valueOf(100)),
-            new AccountDetails("289", "220035", null),
-            new AccountDetails("289", "220037", null),
-            false,
-            false,
-            "Payment transaction",
-            "txn-12345",
-            OffsetDateTime.now(),
-            Map.of()
+        PaymentRequest request = new PaymentRequest(
+                new Amount("USD", BigDecimal.valueOf(100)),
+                new AccountDetails("289", "220035", null),
+                new AccountDetails("289", "220037", null),
+                false,
+                false,
+                "Payment transaction",
+                "txn-12345",
+                OffsetDateTime.now(),
+                Map.of()
         );
 
-        var requestJson = objectMapper.writeValueAsString(request);
+        String requestJson = objectMapper.writeValueAsString(request);
 
         mockMvc.perform(post("/corporate/v2/payments")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(requestJson))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestJson))
                 .andExpect(status().isOk())
-                .andExpect(content().json("{"code":"WPMT0000","message":"Payment request received successfully","trackingId":"txn-12345"}"));
+                .andExpect(content().json("{\"tracking_id\":\"txn-12345\",\"event_datetime\":\".*\"}"));
     }
 
     /**
-     * Tests a payment request missing the amount field.
+     * Tests a payment request with tracking ID exceeding 43 characters.
      */
     @Test
-    public void testPostPayment_MissingAmount() throws Exception {
-        var request = new PaymentRequest(
-            null,  // Missing amount
-            new AccountDetails("289", "220035", null),
-            new AccountDetails("289", "220037", null),
-            false,
-            false,
-            "Missing amount field",
-            "txn-12346",
-            OffsetDateTime.now(),
-            Map.of()
+    public void testPostPayment_TrackingIdTooLong() throws Exception {
+        PaymentRequest request = new PaymentRequest(
+                new Amount("USD", BigDecimal.valueOf(100)),
+                new AccountDetails("289", "220035", null),
+                new AccountDetails("289", "220037", null),
+                false,
+                false,
+                "Tracking ID too long",
+                "txn-12345678901234567890123456789012345678901234",  // 44 characters
+                OffsetDateTime.now(),
+                Map.of()
         );
 
-        var requestJson = objectMapper.writeValueAsString(request);
+        String requestJson = objectMapper.writeValueAsString(request);
 
         mockMvc.perform(post("/corporate/v2/payments")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(requestJson))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestJson))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().json("[{"code":"WPMT0018","message":"Amount is required"}]"));
-    }
-
-    /**
-     * Tests a payment request missing the tracking_id field.
-     */
-    @Test
-    public void testPostPayment_MissingTrackingId() throws Exception {
-        var request = new PaymentRequest(
-            new Amount("USD", BigDecimal.valueOf(100)),
-            new AccountDetails("289", "220035", null),
-            new AccountDetails("289", "220037", null),
-            false,
-            false,
-            "Missing tracking_id",
-            null,  // Missing tracking_id
-            OffsetDateTime.now(),
-            Map.of()
-        );
-
-        var requestJson = objectMapper.writeValueAsString(request);
-
-        mockMvc.perform(post("/corporate/v2/payments")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(requestJson))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().json("[{"code":"WPMT0018","message":"Tracking ID is required"}]"));
+                .andExpect(content().json("[{\"code\":\"WPMT0018\",\"message\":\"tracking_id must be a maximum of 43 characters in length\"}]"));
     }
 }

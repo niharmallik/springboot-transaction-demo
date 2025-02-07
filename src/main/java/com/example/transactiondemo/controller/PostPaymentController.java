@@ -1,15 +1,16 @@
 package com.example.transactiondemo.controller;
 
 import com.example.transactiondemo.dto.PaymentRequest;
-import com.example.transactiondemo.dto.ErrorResponse;
-import com.example.transactiondemo.dto.SuccessResponse;
-import com.example.transactiondemo.validator.PaymentRequestValidator;
+import com.example.transactiondemo.dto.PostPaymentErrorResponse;
+import com.example.transactiondemo.dto.PostPaymentResponse;
+import com.example.transactiondemo.validator.PostPaymentValidator;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,9 +21,9 @@ import java.util.stream.Collectors;
 @RequestMapping("/corporate/v2/payments")
 public class PostPaymentController {
 
-    private final PaymentRequestValidator validator;
+    private final PostPaymentValidator validator;
 
-    public PostPaymentController(PaymentRequestValidator validator) {
+    public PostPaymentController(PostPaymentValidator validator) {
         this.validator = validator;
     }
 
@@ -32,13 +33,13 @@ public class PostPaymentController {
         validator.validate(request, errors);
 
         if (errors.hasErrors()) {
-            List<ErrorResponse> errorResponses = errors.getAllErrors().stream()
-                    .map(error -> new ErrorResponse("WPMT0018", error.getDefaultMessage()))
+            List<PostPaymentErrorResponse> errorResponses = errors.getAllErrors().stream()
+                    .map(error -> new PostPaymentErrorResponse(error.getCode(), error.getDefaultMessage()))
                     .collect(Collectors.toList());
 
             return ResponseEntity.badRequest().body(errorResponses);
         }
 
-        return ResponseEntity.ok(new SuccessResponse("WPMT0000", "Payment request received successfully", request.trackingId()));
+        return ResponseEntity.ok(new PostPaymentResponse(request.trackingId(), OffsetDateTime.now()));
     }
 }
