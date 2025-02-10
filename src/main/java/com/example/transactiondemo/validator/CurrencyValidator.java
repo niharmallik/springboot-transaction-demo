@@ -7,7 +7,7 @@ import org.springframework.validation.Validator;
 import java.util.regex.Pattern;
 
 /**
- * Validator for currency field.
+ * Validator for Currency field.
  */
 @Component
 public class CurrencyValidator implements Validator {
