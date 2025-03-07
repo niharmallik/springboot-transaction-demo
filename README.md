@@ -135,6 +135,20 @@ Metadata Validation
 
 409 - Tracking ID already in use: The tracking ID is already associated with another transaction.
 
+
+----------------------------
+Subject: Thank You & Farewell
+
+Dear [Team/Manager's Name],
+
+As my time at [Company Name] comes to an end, I want to express my sincere gratitude for the incredible journey. Working with such a talented team has been a privilege, and I truly appreciate the support, collaboration, and friendships formed along the way.
+
+A special thanks to [mention specific colleagues or managers] for their guidance and encouragement. Your mentorship has been invaluable.
+
+Though I’m moving on, I’d love to stay in touch. You can reach me at [LinkedIn/personal email]. Wishing you all continued success!
+
+Best regards,[Your Name][Your Contact Information][LinkedIn (if applicable)]
+
 409 - Tracking ID already in use by another account: The same tracking ID is being used for a different account.
 
 423 - Transaction using this tracking ID in progress: A transaction is already being processed with this tracking ID.
